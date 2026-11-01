@@ -10,7 +10,6 @@
     <key>CFBundleVersion</key><string>1</string>
     <key>WKApplication</key><true/>
     <key>WKWatchOnly</key><true/>
-    <key>WKRunsIndependentlyOfCompanionApp</key><true/>
     <key>NSBluetoothAlwaysUsageDescription</key><string>Connect to your Galaxy phone to exchange encrypted notifications and health records.</string>
     <key>NSHealthShareUsageDescription</key><string>Read the health types you choose and send them encrypted to Health Connect on your Galaxy.</string>
     <key>NSLocalNetworkUsageDescription</key><string>Reach your development relay on your local network.</string>

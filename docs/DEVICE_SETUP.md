@@ -47,6 +47,7 @@ No device installation was performed automatically. Android's foreground-service
 1. Copy the source bundle to your Mac and unzip it. Keep `watchos/` and `test-vectors/` adjacent under the same repository root.
 2. With a current compatible Xcode installed, run `cd watchos && swift test` to verify the Apple-side crypto implementation against the Android/Node fixture.
    Alternatively, from the extracted repository root run `sh scripts/check-mac.sh` to perform the crypto tests and an unsigned watch simulator build together. Results are written under `dist/mac-checks/`.
+   The simulator build also needs a watchOS simulator runtime, in addition to the SDK. Install the matching runtime in Xcode Settings > Components (Platforms in some Xcode versions), or use `xcodebuild -downloadPlatform watchOS`. The check script keeps Swift build products and Xcode DerivedData under `dist/mac-checks/` and prints the failing log if a check fails.
 3. Open `watchos/WatchBridge.xcodeproj` in Xcode. Select the WatchBridge target, Signing & Capabilities, and your signing team. Change `dev.watchbridge.watch` to a unique bundle identifier associated with your team. Ensure HealthKit capability is supported by your provisioning. The project does not contain developer credentials.
 4. Select your paired physical watch as run destination. Complete Xcode's device pairing/Developer Mode prompts if requested. Build and run. Apple provisioning limitations may require an appropriate developer-program membership; the health capability must be in the signed profile.
 5. In the watch app, enter the same HTTPS relay URL and the six-digit phone pairing code, then **Join phone**.
@@ -54,7 +55,9 @@ No device installation was performed automatically. Android's foreground-service
 7. Keep the watch app visible. Use **Send test to phone** or the phone's test button to verify both directions.
 8. Tap **Allow watch alerts**, then **Sync health now**. Grant selected HealthKit read permissions. Start with the default one-day backfill. Check the phone's status for import results and inspect Health Connect's app data.
 
-If Xcode reports compile/signing errors, save the complete first error and the Xcode/watchOS version. This source was prepared on Windows and its Apple build has not yet been verified. Do not infer a watch build passed from the Android APK result.
+If Xcode reports compile/signing errors, save the complete first error and the Xcode/watchOS version. See [BUILD_STATUS.md](BUILD_STATUS.md) for actual Mac verification results. An unsigned build does not verify provisioning, physical installation or phone/watch communication.
+
+For simulator runs, leave Xcode's normal ad hoc signing enabled so it embeds the simulated Keychain entitlements. The unsigned check-script artifact is intended to verify compilation. If signing reports “resource fork, Finder information, or similar detritus not allowed” in a cloud-synced workspace, keep signed DerivedData outside that folder (Xcode's default location or a dedicated directory under `/private/tmp`). Only generated app copies need metadata cleanup; do not remove metadata from your source files.
 
 ## Troubleshooting
 

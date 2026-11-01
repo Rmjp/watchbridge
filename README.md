@@ -2,7 +2,7 @@
 
 Original Android + watchOS companion for a Galaxy S25 Ultra and Apple Watch Series 8. This repository includes a compiled Android debug APK, a standalone watchOS Xcode project, a local relay, and shared cryptographic test vectors.
 
-**This is the first device-test build, not a verified replacement for Merge.** Android compiles and passes its crypto test. Relay integration tests run locally. The watch source has not been compiled with Xcode or tested on a physical watch in this Windows workspace. End-to-end device functionality, background delivery, and battery impact remain unverified.
+**This is the first device-test build, not a verified replacement for Merge.** The original Windows verification covered Android compilation and its crypto test. Mac verification now passes the Swift interoperability test, all three relay integration tests, and an unsigned watchOS simulator build with Xcode 16.2. See [docs/BUILD_STATUS.md](docs/BUILD_STATUS.md). End-to-end device functionality, background delivery, and battery impact remain unverified.
 
 ## Included
 
@@ -63,7 +63,7 @@ xcodebuild -project WatchBridge.xcodeproj -scheme WatchBridge \
   -destination 'generic/platform=watchOS Simulator' CODE_SIGNING_ALLOWED=NO build
 ```
 
-The Swift test validates against the same public test vector used by Android. It must still be run on the Mac; no Mac test result is claimed here. `python3 watchos/generate_project.py` regenerates the checked-in Xcode project without XcodeGen.
+The Swift test validates against the same public test vector used by Android. From the repository root, `sh scripts/check-mac.sh` runs both Mac checks and saves logs and build products to `dist/mac-checks/`. Install a watchOS simulator runtime in Xcode Settings > Components if only the SDK is present. `python3 watchos/generate_project.py` regenerates the checked-in Xcode project without XcodeGen.
 
 Protocol: [protocol/SPEC.md](protocol/SPEC.md). Initial implementation uses versioned JSON and native platform P-256, rather than the planning document's candidate protobuf/X25519. This reduces initial dependencies and provides shared test vectors; any incompatible format change requires a protocol version bump. Test keys under `test-vectors/` are public fixtures, not real credentials.
 
