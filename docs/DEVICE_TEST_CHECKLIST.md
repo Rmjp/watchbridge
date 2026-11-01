@@ -8,7 +8,8 @@ Record phone model/Android/One UI, watch model/watchOS, Xcode/macOS, relay hostn
 | Xcode simulator build | Builds without signing | Passed, watchOS 11.2 simulator SDK/runtime, 1 November 2026 |
 | Xcode device build | Compiles device architectures without signing | Passed, arm64 and arm64_32, Xcode 16.2, 1 November 2026 |
 | Simulator installation and launch | Shows pairing controls | Passed on Series 8 (45mm), watchOS 11.2, with simulated entitlements and ad hoc signing; no real pairing performed |
-| Physical-device provisioning | Signs and installs with HealthKit | Not run; paired Series 8 has Developer Mode disabled |
+| Physical-device provisioning | Signs and installs with HealthKit | Passed on Series 8 / watchOS 26.4, Xcode 26.3, 1 November 2026; profile includes watch and HealthKit; development signing expires 8 November 2026 |
+| Physical first launch | Shows pairing controls | Manual check pending; remote launch command timed out after the developer Wi-Fi tunnel dropped |
 | Pairing | Both codes match; one-sided confirmation cannot transfer data | Not run |
 | Two-way test | Phone and watch receive peer test | Not run |
 | Allowed app notification | Watch inbox receives title/body when active | Not run |
