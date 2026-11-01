@@ -1,0 +1,30 @@
+// !$*UTF8*$!
+{ archiveVersion = 1; classes = {}; objectVersion = 56; objects = {
+839DE192E010F66ECDA22165 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchBridge/Bluetooth.swift; sourceTree = "<group>"; };
+1A19D37441495A5ED12BC65D = {isa = PBXBuildFile; fileRef = 839DE192E010F66ECDA22165; };
+028204A2453F292D97B53B87 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchBridge/BridgeModel.swift; sourceTree = "<group>"; };
+EAC3B570D32416DF3A429EE8 = {isa = PBXBuildFile; fileRef = 028204A2453F292D97B53B87; };
+8DE245E788AF74DEA7F46660 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchBridge/Crypto.swift; sourceTree = "<group>"; };
+DAA02A02D7237FD96A79E22F = {isa = PBXBuildFile; fileRef = 8DE245E788AF74DEA7F46660; };
+EA1AAC6FA433AD3FBC15C45A = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchBridge/HealthSync.swift; sourceTree = "<group>"; };
+E8F16D97D123A6699A043823 = {isa = PBXBuildFile; fileRef = EA1AAC6FA433AD3FBC15C45A; };
+93047D213BF3C520011694D3 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchBridge/WatchBridgeApp.swift; sourceTree = "<group>"; };
+0CDB2C80FD9C0EE6827278E5 = {isa = PBXBuildFile; fileRef = 93047D213BF3C520011694D3; };
+A8792157CB4F27FB949C035F = {isa = PBXFileReference; explicitFileType = wrapper.application; path = WatchBridge.app; sourceTree = BUILT_PRODUCTS_DIR; };
+8BF729FFE074CAEE622C0292 = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = WatchBridge/Assets.xcassets; sourceTree = "<group>"; };
+F2687002D4A70A82C8684105 = {isa = PBXBuildFile; fileRef = 8BF729FFE074CAEE622C0292; };
+41D311A605520FC7B8B9A980 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (F2687002D4A70A82C8684105); runOnlyForDeploymentPostprocessing = 0; };
+4813494D137E1631BBA301D5 = {isa = PBXGroup; children = (839DE192E010F66ECDA22165,028204A2453F292D97B53B87,8DE245E788AF74DEA7F46660,EA1AAC6FA433AD3FBC15C45A,93047D213BF3C520011694D3,8BF729FFE074CAEE622C0292,0A3E27B8CA818264D75C8D81); sourceTree = "<group>"; };
+0A3E27B8CA818264D75C8D81 = {isa = PBXGroup; name = Products; children = (A8792157CB4F27FB949C035F); sourceTree = "<group>"; };
+878A52FC5FF6A57D50B7B870 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (1A19D37441495A5ED12BC65D,EAC3B570D32416DF3A429EE8,DAA02A02D7237FD96A79E22F,E8F16D97D123A6699A043823,0CDB2C80FD9C0EE6827278E5); runOnlyForDeploymentPostprocessing = 0; };
+34A04005BCAF206EEC990BD9 = {isa = PBXNativeTarget; buildConfigurationList = 175AB01246347EE3CB3AD67C; buildPhases = (878A52FC5FF6A57D50B7B870,41D311A605520FC7B8B9A980); buildRules = (); dependencies = (); name = WatchBridge; productName = WatchBridge; productReference = A8792157CB4F27FB949C035F; productType = "com.apple.product-type.application"; };
+244210E48437B6556980A702 = {isa = PBXProject; attributes = {LastUpgradeCheck = 1600; TargetAttributes = {34A04005BCAF206EEC990BD9 = {CreatedOnToolsVersion = 16.0; }; }; }; buildConfigurationList = C631E4B921CE4474D0AB93BD; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; knownRegions = (en,Base); mainGroup = 4813494D137E1631BBA301D5; productRefGroup = 0A3E27B8CA818264D75C8D81; projectDirPath = ""; projectRoot = ""; targets = (34A04005BCAF206EEC990BD9); };
+6C7EFF6369083C8E1F2B1994 = {isa = XCBuildConfiguration; buildSettings = {SDKROOT = watchos; SUPPORTED_PLATFORMS = "watchos watchsimulator"; WATCHOS_DEPLOYMENT_TARGET = 10.0; TARGETED_DEVICE_FAMILY = 4; PRODUCT_BUNDLE_IDENTIFIER = dev.watchbridge.watch; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; INFOPLIST_FILE = WatchBridge/Info.plist; CODE_SIGN_ENTITLEMENTS = WatchBridge/WatchBridge.entitlements; CODE_SIGN_STYLE = Automatic; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; GENERATE_INFOPLIST_FILE = NO; ENABLE_USER_SCRIPT_SANDBOXING = YES; SWIFT_STRICT_CONCURRENCY = minimal; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;}; name = Debug; };
+73EBF6644258C120893E685D = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; }; name = Debug; };
+DD75E2CB1C510A828AC72D96 = {isa = XCBuildConfiguration; buildSettings = {SDKROOT = watchos; SUPPORTED_PLATFORMS = "watchos watchsimulator"; WATCHOS_DEPLOYMENT_TARGET = 10.0; TARGETED_DEVICE_FAMILY = 4; PRODUCT_BUNDLE_IDENTIFIER = dev.watchbridge.watch; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; INFOPLIST_FILE = WatchBridge/Info.plist; CODE_SIGN_ENTITLEMENTS = WatchBridge/WatchBridge.entitlements; CODE_SIGN_STYLE = Automatic; SWIFT_OPTIMIZATION_LEVEL = "-O"; GENERATE_INFOPLIST_FILE = NO; ENABLE_USER_SCRIPT_SANDBOXING = YES; SWIFT_STRICT_CONCURRENCY = minimal; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;}; name = Release; };
+0B0C687DF8B6B8DC790B519C = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; SWIFT_ACTIVE_COMPILATION_CONDITIONS = ""; }; name = Release; };
+175AB01246347EE3CB3AD67C = {isa = XCConfigurationList; buildConfigurations = (6C7EFF6369083C8E1F2B1994,DD75E2CB1C510A828AC72D96); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+C631E4B921CE4474D0AB93BD = {isa = XCConfigurationList; buildConfigurations = (73EBF6644258C120893E685D,0B0C687DF8B6B8DC790B519C); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+};
+rootObject = 244210E48437B6556980A702;
+}

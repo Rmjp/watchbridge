@@ -1,0 +1,17 @@
+import { createECDH, createPrivateKey, createHash, hkdfSync, createCipheriv } from 'node:crypto';
+import { writeFileSync } from 'node:fs';
+const a=createECDH('prime256v1'),w=createECDH('prime256v1');
+a.setPrivateKey(Buffer.from('01'.padStart(64,'0'),'hex'));w.setPrivateKey(Buffer.from('02'.padStart(64,'0'),'hex'));
+const androidPublic=a.getPublicKey().toString('base64'),watchPublic=w.getPublicKey().toString('base64');
+const salt=createHash('sha256').update(`${androidPublic}|${watchPublic}`).digest();
+const key=Buffer.from(hkdfSync('sha256',a.computeSecret(w.getPublicKey()),salt,'watchbridge.v1',32));
+const sas=String(createHash('sha256').update(Buffer.concat([key,salt])).digest().readUInt32BE()%1000000).padStart(6,'0');
+const publicRaw=a.getPublicKey();
+const pkcs8=createPrivateKey({key:{kty:'EC',crv:'P-256',x:publicRaw.subarray(1,33).toString('base64url'),y:publicRaw.subarray(33).toString('base64url'),d:a.getPrivateKey().toString('base64url')},format:'jwk'}).export({type:'pkcs8',format:'der'}).toString('base64');
+const envelope={v:1,id:'00000000-0000-0000-0000-000000000003',sender:'00000000-0000-0000-0000-000000000001',recipient:'00000000-0000-0000-0000-000000000002',type:'ping',created:1700000000000,expires:1700086400000};
+const nonce=Buffer.from('000102030405060708090a0b','hex');
+const directional=Buffer.from(hkdfSync('sha256',key,Buffer.alloc(0),`watchbridge.v1.sender:${envelope.sender}`,32));
+const aad=`watchbridge.v1|${envelope.id}|${envelope.sender}|${envelope.recipient}|${envelope.type}|${envelope.created}|${envelope.expires}`;
+const c=createCipheriv('aes-256-gcm',directional,nonce);c.setAAD(Buffer.from(aad));const bytes=Buffer.concat([c.update('{"text":"hello"}'),c.final(),c.getAuthTag()]);
+const result={notice:'PUBLIC TEST KEYS ONLY. Never use these keys or nonce in a real pairing.',androidPrivatePKCS8:pkcs8,watchPrivateRaw:w.getPrivateKey().toString('base64'),androidPublic,watchPublic,key:key.toString('base64'),securityCode:sas,directionalKey:directional.toString('base64'),aad,payload:{text:'hello'},envelope:{...envelope,nonce:nonce.toString('base64'),ciphertext:bytes.toString('base64')}};
+writeFileSync(new URL('../test-vectors/crypto-v1.json',import.meta.url),JSON.stringify(result,null,2)+'\n');

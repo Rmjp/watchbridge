@@ -1,0 +1,40 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { createECDH, randomUUID, randomBytes, hkdfSync, createHash, createCipheriv, createDecipheriv } from 'node:crypto';
+import { createRelay } from '../src/server.mjs';
+
+const peer = () => { const k=createECDH('prime256v1'); k.generateKeys(); return { id:randomUUID(), key:k, publicKey:k.getPublicKey().toString('base64') }; };
+test('pairing authorization, opaque delivery, dedup, scoped ack and revocation', async t => {
+ const server=createRelay(); await new Promise(r=>server.listen(0,'127.0.0.1',r)); t.after(()=>new Promise(r=>server.close(r)));
+ const base=`http://127.0.0.1:${server.address().port}`;
+ async function call(path,body,token,expected=200){const r=await fetch(base+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{})},body:body?JSON.stringify(body):undefined});const b=await r.json();assert.equal(r.status,expected,JSON.stringify(b));return b;}
+ const a=peer(),w=peer(),x=peer();
+ const ac=await call('/v1/pair/create',{deviceId:a.id,publicKey:a.publicKey});
+ const wc=await call('/v1/pair/join',{deviceId:w.id,publicKey:w.publicKey,code:ac.code});
+ await call('/v1/pair/join',{deviceId:x.id,publicKey:x.publicKey,code:ac.code},null,409);
+ assert.equal((await call('/v1/pair',null,ac.token)).peerPublicKey,w.publicKey);
+ await call('/v1/events',{},ac.token,403);
+ await call('/v1/pair/approve',{},ac.token); await call('/v1/events',null,ac.token,403);
+ await call('/v1/pair/approve',{},wc.token);
+ const salt=createHash('sha256').update(`${a.publicKey}|${w.publicKey}`).digest();
+ const key=Buffer.from(hkdfSync('sha256',a.key.computeSecret(w.key.getPublicKey()),salt,'watchbridge.v1',32));
+ assert.deepEqual(key,Buffer.from(hkdfSync('sha256',w.key.computeSecret(a.key.getPublicKey()),salt,'watchbridge.v1',32)));
+ const directional=Buffer.from(hkdfSync('sha256',key,Buffer.alloc(0),`watchbridge.v1.sender:${a.id}`,32));
+ const e={v:1,id:randomUUID(),sender:a.id,recipient:w.id,type:'notification',created:Date.now(),expires:Date.now()+60000};
+ const nonce=randomBytes(12),aad=Buffer.from(`watchbridge.v1|${e.id}|${e.sender}|${e.recipient}|${e.type}|${e.created}|${e.expires}`);
+ const c=createCipheriv('aes-256-gcm',directional,nonce);c.setAAD(aad);const ciphertext=Buffer.concat([c.update(JSON.stringify({title:'Private test'})),c.final(),c.getAuthTag()]);
+ Object.assign(e,{nonce:nonce.toString('base64'),ciphertext:ciphertext.toString('base64')});
+ await call('/v1/events',e,'wrong',401); await call('/v1/events',{...e,recipient:x.id},ac.token,400);
+ await call('/v1/events',e,ac.token); await call('/v1/events',e,ac.token);
+ await call('/v1/events',{...e,ciphertext:randomBytes(40).toString('base64')},ac.token,409);
+ const events=(await call('/v1/events',null,wc.token)).events;assert.equal(events.length,1);
+ assert.ok(!JSON.stringify(events).includes('Private test'));
+ const d=createDecipheriv('aes-256-gcm',directional,nonce);d.setAAD(aad);d.setAuthTag(ciphertext.subarray(-16));assert.equal(JSON.parse(Buffer.concat([d.update(ciphertext.subarray(0,-16)),d.final()])).title,'Private test');
+ const tampered=createDecipheriv('aes-256-gcm',directional,nonce);tampered.setAAD(Buffer.from('tampered'));tampered.setAuthTag(ciphertext.subarray(-16));assert.throws(()=>{tampered.update(ciphertext.subarray(0,-16));tampered.final();});
+ await call('/v1/events/ack',{ids:[e.id]},ac.token);assert.equal((await call('/v1/events',null,wc.token)).events.length,1);
+ await call('/v1/events/ack',{ids:[e.id]},wc.token);assert.equal((await call('/v1/events',null,wc.token)).events.length,0);
+ await call('/v1/events',{...e,id:randomUUID(),created:Date.now()-2*86400000,expires:Date.now()+60000},ac.token,400);
+ await call('/v1/events',{...e,id:randomUUID(),type:'health',created:Date.now()-2*86400000,expires:Date.now()+60000},ac.token);
+ await call('/v1/revoke',{},wc.token);await call('/v1/events',null,ac.token,401);
+});
+test('pair expiry and input limits',async t=>{let now=Date.now();const s=createRelay({now:()=>now});await new Promise(r=>s.listen(0,'127.0.0.1',r));t.after(()=>new Promise(r=>s.close(r)));const base=`http://127.0.0.1:${s.address().port}`;const a=peer();const r=await fetch(base+'/v1/pair/create',{method:'POST',body:JSON.stringify({deviceId:a.id,publicKey:a.publicKey})});const p=await r.json();assert.equal(r.status,200);now+=600001;const expired=await fetch(base+'/v1/pair',{headers:{Authorization:`Bearer ${p.token}`}});assert.equal(expired.status,410);});
