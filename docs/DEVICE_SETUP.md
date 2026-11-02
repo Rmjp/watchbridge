@@ -1,71 +1,36 @@
-# Install and run on your devices
+# Bluetooth-only setup (0.2)
 
-## Relay
+Update both apps. The 0.1 relay app is not compatible with this Bluetooth service. No relay URL or cloud deployment is needed.
 
-The devices need one reachable HTTPS relay for initial pairing and internet fallback. An unencrypted development HTTP server is included, but the watch app's App Transport Security requires HTTPS. Running Node on a Mac does not by itself make its address reachable through a valid HTTPS certificate.
+## Galaxy
 
-On a machine with Node.js 24 or later:
+1. Transfer/install `dist/WatchBridge-0.2-debug.apk`. If signing differs from your installed build, Android will reject the update; uninstalling clears its app pairing, so pair again afterward.
+2. Open WatchBridge, grant Bluetooth permissions, and turn Bluetooth on.
+3. Tap **Start new Bluetooth pairing**. This forgets the previous local pairing and queued transfers, not Health Connect records.
+4. Keep this screen open while finding the phone from the watch. Compare the security code on both displays and confirm only if identical.
+5. Enable **notification access** in system settings and choose allowed apps. An empty allowlist forwards nothing. Group-summary and ongoing-service notifications are deliberately excluded.
+6. The pairing action starts the foreground Bluetooth service. Use **Start bridge** to resume a saved pairing after pause/process restart. Keep the service enabled while testing.
+7. For health, grant the corresponding Health Connect write permissions before starting a watch import.
 
-```sh
-cd server
-npm test
-npm start
-```
+## Watch / Mac
 
-Keep the default backend on `127.0.0.1:8787`. Put an HTTPS reverse proxy in front using your existing domain and a valid device-trusted certificate. Example Caddy configuration (replace the hostname):
+1. Check out `codex/bluetooth-only` or unpack its source bundle. Run `cd watchos && swift test` on your Mac.
+2. Open the Xcode project. Keep your existing signing team and unique bundle ID, with HealthKit capability. Use Xcode's normal DerivedData location outside any cloud-synced folder to avoid Finder-metadata signing failures seen during 0.1 verification.
+3. Install/run on the Series 8. Your existing Apple activation remains intact.
+4. Tap **Find Galaxy** after phone pairing starts. This searches only for the new WatchBridge BLE service.
+5. Compare both codes and tap **Codes match — confirm** on each device. No data flows until both approvals and a fresh encrypted connection proof succeed.
+6. Tap **Allow watch alerts**. Keep the app open and send a test from the phone. Then trigger a fresh real notification in one selected phone app and inspect **Phone inbox**.
+7. Text replies require the original Android app's free-form notification reply action. They expire after ten minutes or phone-process loss.
+8. For health, choose a one-day initial window and tap **Sync health now**. Health queues in 25-record batches and advances its cursor only after Android reports all imports successful.
 
-```caddyfile
-bridge.your-domain.example {
-    reverse_proxy 127.0.0.1:8787
-}
-```
+## Reconnect and reset
 
-You must supply DNS, network reachability and certificate setup for that hostname. This project does not purchase a domain, start a tunnel, change your firewall, or deploy publicly. Test `https://YOUR-HOST/healthz` from a browser; it should return an `ok` response. No payload belongs in an access-log URL. Keep the SQLite database private and back it up securely if you want to retain pairing across server migration.
+- No Wi-Fi or internet is required, including first pairing. You can turn both devices' Wi-Fi off for this test while leaving Bluetooth on.
+- Out-of-range messages remain on the sender until acknowledged or expired. Return nearby with the phone bridge enabled and tap **Reconnect Bluetooth** on the watch if necessary.
+- A watchOS background wake is not guaranteed. Test with the app open before trying the watch face/wrist down.
+- A different pinned peer key/ID is rejected. Use **Forget pairing** on both devices before switching partners or starting fresh.
+- Forget works offline and only affects that device. It clears local keys, app inbox/outbox, and sync state. Previously imported Health Connect records remain in the system store.
+- If one-sided confirmation or pending discovery expires, start fresh pairing on both sides within five minutes.
+- Connection status, pending count and last transfer are diagnostic hints. A data receipt does not prove watchOS showed an alert or that a messaging app delivered a reply to its remote recipient.
 
-For a local-only test use a local reverse proxy/certificate already trusted by both devices. Do not disable certificate validation in code. Apple Watch simulator/macOS certificate trust is separate from physical watch trust. Debug Android allows `http://` for phone-only experiments; watch HTTPS is still required.
-
-## Galaxy S25 Ultra
-
-1. Transfer `dist/WatchBridge-0.1-debug.apk` to the phone and open it. Permit installation from the transfer/file app if Android asks. This is a debug-signed personal test build.
-2. Open WatchBridge. Grant Bluetooth permissions. Android may also ask for the app's own notification permission.
-3. Enter the reachable HTTPS relay URL, without `/v1` suffix. Tap **Create pairing code**.
-4. Keep the phone screen available for code comparison.
-5. After confirming on both devices, use **Check connection**, then **Start bridge**. Bluetooth must be on.
-6. Open **Enable notification access**, enable WatchBridge in system settings, return, and choose specific apps using **Choose apps**. An empty allowlist forwards nothing.
-7. Tap **Allow Health Connect import** and permit all five initial type families you intend to sync. A mixed batch fails if a represented type lacks permission.
-
-Alternative installation with an authorized USB debugging connection:
-
-```sh
-adb install -r dist/WatchBridge-0.1-debug.apk
-```
-
-No device installation was performed automatically. Android's foreground-service notification indicates the bridge is active. Use **Pause bridge** to stop transfers. Do not assume the debug process survives force-stop, reboot, or all Samsung battery-management states.
-
-## Mac and Apple Watch Series 8
-
-1. Copy the source bundle to your Mac and unzip it. Keep `watchos/` and `test-vectors/` adjacent under the same repository root.
-2. With a current compatible Xcode installed, run `cd watchos && swift test` to verify the Apple-side crypto implementation against the Android/Node fixture.
-   Alternatively, from the extracted repository root run `sh scripts/check-mac.sh` to perform the crypto tests and an unsigned watch simulator build together. Results are written under `dist/mac-checks/`.
-3. Open `watchos/WatchBridge.xcodeproj` in Xcode. Select the WatchBridge target, Signing & Capabilities, and your signing team. Change `dev.watchbridge.watch` to a unique bundle identifier associated with your team. Ensure HealthKit capability is supported by your provisioning. The project does not contain developer credentials.
-4. Select your paired physical watch as run destination. Complete Xcode's device pairing/Developer Mode prompts if requested. Build and run. Apple provisioning limitations may require an appropriate developer-program membership; the health capability must be in the signed profile.
-5. In the watch app, enter the same HTTPS relay URL and the six-digit phone pairing code, then **Join phone**.
-6. Compare the **security code** shown on both devices. It is a separate code from the initial pairing code. Confirm only if both match; tap confirm on each device.
-7. Keep the watch app visible. Use **Send test to phone** or the phone's test button to verify both directions.
-8. Tap **Allow watch alerts**, then **Sync health now**. Grant selected HealthKit read permissions. Start with the default one-day backfill. Check the phone's status for import results and inspect Health Connect's app data.
-
-If Xcode reports compile/signing errors, save the complete first error and the Xcode/watchOS version. This source was prepared on Windows and its Apple build has not yet been verified. Do not infer a watch build passed from the Android APK result.
-
-## Troubleshooting
-
-- **Codes do not match:** cancel, revoke the pairing if possible, and create a fresh session. Do not confirm.
-- **Code expired/already used:** create a fresh phone pairing code; it lasts ten minutes and permits one watch join.
-- **No notifications:** confirm the bridge is running, system notification access is enabled, the source app is allowed, and the notification is not an ongoing/group-summary event. Test with the watch app open first.
-- **No Bluetooth:** grant all requested phone Bluetooth permissions and enable Bluetooth on both devices. Relay can still work while the watch app is open and online.
-- **Network error:** verify the same HTTPS base URL, certificate trust, actual device connectivity, and `/healthz`. A localhost URL refers to each device itself and is unsuitable for device pairing.
-- **Reply expired:** trigger a fresh notification exposing a free-form reply action. Actions expire after ten minutes, notification removal/update or phone process loss.
-- **Health empty:** HealthKit can return empty data when reads are denied. Verify permissions and actual data on the watch. One-day backfill may not include an older workout.
-- **Health import failure:** enable corresponding phone Health Connect write permissions, then sync again. Stable source IDs prevent normal retries from inserting duplicates.
-- **No suspended alerts:** expected unresolved prototype limitation. No APNs delivery or scheduled background polling is included.
-- **Revocation:** unpair while online so the relay revokes both tokens. The other app notices the invalid token on its next relay request. Offline revocation cannot instantly stop an offline peer.
-- **Previously imported health data:** unpairing clears bridge keys and queues; it does not erase records already written to Health Connect. Manage those records through Health Connect's app-data controls.
+If compilation fails on the Mac, retain the first compiler error and Xcode/watchOS versions. Mac 0.1 success is not proof that the new 0.2 Swift changes compiled. Follow [BUILD_STATUS.md](BUILD_STATUS.md) and CI results for the current revision.

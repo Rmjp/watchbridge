@@ -1,30 +1,29 @@
-# Physical-device acceptance record
+# Bluetooth 0.2 physical-device checks
 
-Record phone model/Android/One UI, watch model/watchOS, Xcode/macOS, relay hostname, test time and network topology. Do not include bearer tokens, private keys, health samples or notification content in diagnostic uploads.
+All physical tests below are pending for the new Bluetooth-only version. Earlier watch installation/build results apply to 0.1.
 
-| Test | Expected | Observed |
-|---|---|---|
-| Mac `swift test` | Pairing key/SAS/AES-GCM vector matches | Not run |
-| Xcode simulator/device build | Builds and signs with HealthKit | Not run |
-| Pairing | Both codes match; one-sided confirmation cannot transfer data | Not run |
-| Two-way test | Phone and watch receive peer test | Not run |
-| Allowed app notification | Watch inbox receives title/body when active | Not run |
-| Disallowed app | No forwarded content | Not run |
-| Reply | Reply action executes once or displays a specific failure | Not run |
-| Reply after ten minutes | Explicit expired response | Not run |
-| Notification removal | Removes watch inbox entry | Not run |
-| Phone bridge paused | No new capture/transfers | Not run |
-| BLE-only after pairing | Test message works while relay unavailable, both apps active | Not run |
-| Bluetooth disconnected | Foreground relay delivers | Not run |
-| Retry via both transports | No duplicate inbox effect or repeated reply | Not run |
-| Watch suspended / wrist down | Measure received vs shown vs delayed, no assumed SLA | Not run |
-| Health one-day backfill | Counts/times/types match readable source data | Not run |
-| Repeat health sync | No duplicate source IDs | Not run |
-| One health permission denied | Clear error and retry, cursor does not advance on failure | Not run |
-| Sleep | Individual sample sessions are visible; aggregation deferred | Not run |
-| Time zone / DST | UTC intervals remain correct; original zone display deferred | Not run |
-| Reboot/process restart | Pairing persists; manually restart phone bridge/watch app | Not run |
-| Online unpair | Relay refuses both tokens on next request | Not run |
-| 48-hour use | Record baseline and enabled battery use and delivery gaps | Not run |
+Record Android/One UI, watchOS, Xcode/macOS, both app versions, and test timestamps. Do not share notification contents, health samples, private keys or application database files in logs.
 
-Do not mark a test passed solely because the relay accepted an envelope. Health requires successful Health Connect insertion; notifications require observing the inbox/alert; a source app accepting a PendingIntent is not proof of remote message delivery.
+| Test | Expected |
+|---|---|
+| Wi-Fi/mobile data off, Bluetooth on | Pair and send test messages with no server |
+| One-side approval only | No authenticated data transfer |
+| Codes do not match | Cancel; do not confirm |
+| Both approvals | Connected/authenticated state on both devices |
+| Allowlisted fresh notification | Inbox entry on watch; alert subject to watch permissions/runtime |
+| Disallowed app | No forwarded content |
+| Supported text reply | Original action attempted once; result shown |
+| Removed notification | Watch inbox entry removed |
+| Move out of range | Pending data remains; no false delivery status |
+| Return nearby | Fresh challenge proof; pending messages acknowledged/drained |
+| Disconnect during a large health batch | Partial bytes discarded; data retries after reconnect |
+| Duplicate delivery/lost ACK | No duplicate effect; receiver ACKs again |
+| Relaunch apps | Pairing and encrypted queues persist; resume phone bridge manually |
+| Sleep/wrist down/watch face | Measure delivered/inbox/alert latency; no assumed SLA |
+| Repeated health import | Stable source IDs prevent duplicate inserts |
+| Denied health permission | Failure shown; health cursor does not advance |
+| Forget offline | Local keys/queue cleared; forget other device separately |
+| Different phone/watch | Pinned identity rejected until explicit reset |
+| 48-hour battery comparison | Compare baseline against enabled bridge |
+
+Watch background limitations remain a real feasibility gate. A successful foreground transfer is not evidence of reliable screen-off delivery.

@@ -51,11 +51,11 @@ class PhoneNotifications:NotificationListenerService() {
         }
         val app=runCatching{packageManager.getApplicationLabel(packageManager.getApplicationInfo(sbn.packageName,0)).toString()}.getOrDefault(sbn.packageName)
         engine.scope.launch {
-            engine.send("notification",JSONObject().put("key",sbn.key).put("app",app).put("title",title).put("body",body).put("posted",sbn.postTime).put("actions",list))
+            runCatching{engine.send("notification",JSONObject().put("key",sbn.key).put("app",app).put("title",title).put("body",body).put("posted",sbn.postTime).put("actions",list))}.onFailure{engine.status="Notification queue: ${it.message}"}
         }
     }
     override fun onNotificationRemoved(sbn:StatusBarNotification){
         actions.entries.removeIf{it.value.key==sbn.key}
-        if(engine.running && engine.allowed(sbn.packageName))engine.scope.launch {engine.send("remove",JSONObject().put("key",sbn.key))}
+        if(engine.running && engine.allowed(sbn.packageName))engine.scope.launch {runCatching{engine.send("remove",JSONObject().put("key",sbn.key))}.onFailure{engine.status="Notification queue: ${it.message}"}}
     }
 }
