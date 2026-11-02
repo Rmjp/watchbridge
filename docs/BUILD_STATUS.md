@@ -1,5 +1,13 @@
 # Build status — 1 November 2026
 
+## Bluetooth-only 0.2 update — 2 November 2026
+
+Android Bluetooth-only `assembleDebug` and unit tests passed during implementation. Added tests cover fragmented/coalesced frames, partial-buffer reset on reconnect, oversized input, stop-and-wait delivery, wrong/duplicate ACKs, and stale session challenges. Final lint/build and new Mac CI results are recorded in the pull request. The earlier Mac and physical-installation results below apply to **0.1**, not this new code. Actual 0.2 device pairing and screen-off behavior remain pending.
+
+The mobile apps no longer use a relay, URLSession, or HTTP pairing. Android excludes INTERNET permission. New watch tests and an unsigned device-build CI job check the Swift changes; a passing compile still does not establish physical BLE behavior.
+
+## Earlier 0.1 verification
+
 Original Windows verification reported by the prototype author (not rerun on this Mac):
 
 - Android `assembleDebug`: passed, using API 36 / AGP 8.11.1 / Gradle 8.13 / JDK 21.

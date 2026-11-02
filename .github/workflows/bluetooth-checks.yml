@@ -1,0 +1,35 @@
+name: Bluetooth companion checks
+on:
+  push:
+    branches: [main, codex/bluetooth-only]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  watch:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Swift crypto and Bluetooth protocol tests
+        run: cd watchos && swift test
+      - name: Compile unsigned watch device app
+        run: xcodebuild -project watchos/WatchBridge.xcodeproj -scheme WatchBridge -sdk watchos -destination 'generic/platform=watchOS' -derivedDataPath "$RUNNER_TEMP/WatchBridge" CODE_SIGNING_ALLOWED=NO build
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+      - name: Build and test Android
+        run: cd android && ./gradlew assembleDebug testDebugUnitTest lintDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WatchBridge-0.2-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk

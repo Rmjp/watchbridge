@@ -6,11 +6,10 @@
     <key>CFBundleExecutable</key><string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleName</key><string>$(PRODUCT_NAME)</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.1.0</string>
-    <key>CFBundleVersion</key><string>1</string>
+    <key>CFBundleShortVersionString</key><string>0.2.0</string>
+    <key>CFBundleVersion</key><string>2</string>
     <key>WKApplication</key><true/>
     <key>WKWatchOnly</key><true/>
     <key>NSBluetoothAlwaysUsageDescription</key><string>Connect to your Galaxy phone to exchange encrypted notifications and health records.</string>
     <key>NSHealthShareUsageDescription</key><string>Read the health types you choose and send them encrypted to Health Connect on your Galaxy.</string>
-    <key>NSLocalNetworkUsageDescription</key><string>Reach your development relay on your local network.</string>
 </dict></plist>

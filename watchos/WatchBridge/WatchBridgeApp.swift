@@ -6,7 +6,7 @@ import SwiftUI
     var body: some Scene {
         WindowGroup {
             ContentView().environmentObject(model)
-                .onChange(of: phase) { newValue in
+                .onChange(of: phase) { _, newValue in
                     if newValue == .active { model.start() }
                     else if newValue == .background { model.suspend() }
                 }
@@ -16,22 +16,24 @@ import SwiftUI
 
 @MainActor struct ContentView: View {
     @EnvironmentObject var model: BridgeModel
+    @State private var showForget = false
     var body: some View {
         NavigationStack {
             List {
                 Section {
                     Label("WatchBridge", systemImage: "link").font(.headline).foregroundStyle(.mint)
+                    Text("Bluetooth only · 0.2").font(.caption2)
                     Text(model.status).font(.caption)
+                    Text("Pending: \(model.pendingCount) · Last: \(model.lastTransfer)").font(.caption2)
                 }
                 if !model.active {
                     Section("Pair with Galaxy") {
-                        TextField("Relay HTTPS URL", text: $model.relayURL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                        TextField("Phone pairing code", text: $model.pairingCode)
-                        Button("Join phone") { Task { await model.join() } }
+                        Text("Start new Bluetooth pairing on the phone, then search here. No Wi-Fi, account or server is required.").font(.caption2)
+                        Button(model.securityCode.isEmpty ? "Find Galaxy" : "Start over and find Galaxy") { model.findGalaxy() }
                         if !model.securityCode.isEmpty {
                             Text(model.securityCode).font(.title2.monospacedDigit()).foregroundStyle(.mint)
                             Text("Compare this security code with the phone. Confirm only if both match.").font(.caption2)
-                            Button("Codes match — confirm") { Task { await model.approve() } }
+                            Button("Codes match — confirm") { model.approve() }
                         }
                     }
                 } else {
@@ -54,13 +56,19 @@ import SwiftUI
                         Text("First sync reads the selected window, then later syncs are incremental. Reads depend on permission and what is stored on this watch. Sleep stages are imported separately in this prototype.").font(.caption2)
                     }
                     Section("Connection") {
+                        Text(model.connected ? "Connected and authenticated" : "Out of range · messages stay queued").font(.caption)
+                        Button("Reconnect Bluetooth") { model.findGalaxy() }
                         Button("Allow watch alerts") { Task { await model.requestNotifications() } }
                         Button("Send test to phone") { model.ping() }
-                        Text("Keep this app open for initial testing. Background alerts and automatic health sync are not enabled in 0.1.").font(.caption2)
-                        Button("Unpair", role: .destructive) { Task { await model.unpair() } }
+                        Text("Keep the apps nearby and open for the first test. watchOS controls background Bluetooth runtime; screen-off delivery still needs testing.").font(.caption2)
+                        Button("Forget pairing", role: .destructive) { showForget = true }
                     }
                 }
             }.navigationTitle("WatchBridge")
+                .confirmationDialog("Forget local keys and pending transfers? Forget pairing on the phone too.", isPresented: $showForget) {
+                    Button("Forget pairing", role: .destructive) { model.unpair() }
+                    Button("Cancel", role: .cancel) { }
+                }
         }
     }
 }
